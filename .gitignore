@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.hf-cache/
+adapters/
+outputs/
+reports/lab8_validation_summary.json
