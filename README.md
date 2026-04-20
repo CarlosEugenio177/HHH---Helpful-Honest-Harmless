@@ -4,51 +4,38 @@ Autor: Carlos Eugenio
 
 ## Descricao
 
-Este projeto implementa um pipeline de alinhamento de modelo de linguagem com Direct Preference Optimization (DPO), seguindo o objetivo de tornar o comportamento do modelo mais util, honesto e inofensivo (HHH - Helpful, Honest, Harmless).
+Este repositorio contem a entrega do Laboratorio 08, cujo objetivo e implementar um pipeline de alinhamento humano com Direct Preference Optimization (DPO) para favorecer respostas uteis, honestas e inofensivas (HHH - Helpful, Honest, Harmless).
 
-O fluxo cobre:
+O projeto inclui:
 
-- construcao de dataset de preferencias com pares `chosen` e `rejected`
-- validacao estrutural do dataset no formato `.jsonl`
-- carregamento de modelo ator e modelo de referencia
-- reaproveitamento opcional do adaptador treinado no Lab 07
-- treinamento com `DPOTrainer`
-- validacao por comparacao de log-probabilidades entre resposta segura e resposta rejeitada
-- exportacao de relatorio final em `reports/lab8_validation_summary.json`
+- dataset de preferencias no formato `prompt`, `chosen` e `rejected`
+- script para recriar o dataset de preferencias
+- script de treinamento com `DPOTrainer`
+- documentacao da escolha de `beta = 0.1`
+- evidencia de execucao e validacao final
 
 ## Objetivo do laboratorio
 
 Substituir um pipeline mais complexo de RLHF por DPO, otimizando diretamente preferencias humanas para suprimir respostas toxicas, inseguras ou inadequadas, sem perder a fluencia geral do modelo.
 
-## Estrutura do projeto
+## Estrutura publicada
+
+O conteudo atualmente publicado neste repositório e:
 
 ```text
 .
-├── adapters/
-│   └── smoke-test/
 ├── dataset/
 │   ├── hhh_preferences.jsonl
 │   ├── hhh_preferences_train.jsonl
-│   ├── hhh_preferences_test.jsonl
-│   ├── train.jsonl
-│   └── test.jsonl
+│   └── hhh_preferences_test.jsonl
 ├── reports/
 │   └── final_run_lab08.md
-├── generate_dataset.py
+├── .gitignore
+├── README.md
 ├── generate_dpo_dataset.py
-├── train_qlora.py
-├── train_dpo.py
 ├── requirements.txt
-└── README.md
+└── train_dpo.py
 ```
-
-## Organizacao do repositorio
-
-O repositorio foi reorganizado para deixar claro o que pertence ao Lab 08 e o que foi herdado do Lab 07:
-
-- `train_dpo.py`, `generate_dpo_dataset.py` e os arquivos `dataset/hhh_preferences*.jsonl` sao os artefatos centrais desta entrega
-- `train_qlora.py`, `generate_dataset.py` e `dataset/train.jsonl` / `dataset/test.jsonl` foram mantidos como base historica do Lab 07
-- `reports/` concentra evidencias de execucao e validacao para revisao do professor
 
 ## Dataset de preferencias HHH
 
@@ -81,6 +68,28 @@ Os exemplos cobrem:
 - instrucoes corporativas com tom inadequado
 - solicitacoes ofensivas, discriminatorias ou abusivas
 
+## Como criar o ambiente virtual
+
+Para executar o projeto a partir de um clone limpo, crie e ative um ambiente virtual Python antes de instalar as dependencias.
+
+### Windows PowerShell
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Windows CMD
+
+```bat
+python -m venv venv
+venv\Scripts\activate.bat
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
 ## Geracao do dataset
 
 O dataset ja esta versionado no repositorio, mas pode ser recriado a qualquer momento com:
@@ -100,7 +109,7 @@ Ele suporta dois modelos em memoria:
 - modelo ator: recebe atualizacao de pesos via LoRA
 - modelo de referencia: fica congelado para calcular a penalizacao relativa ao comportamento original
 
-Por padrao, o script tenta usar o adaptador do Lab 07 em `adapters/smoke-test` como ponto de partida do ator e tambem como referencia congelada.
+Se existir um adaptador SFT em `adapters/smoke-test`, o script tenta reaproveita-lo como ponto de partida do ator e como referencia congelada.
 
 Se esse adaptador nao existir, o script cria automaticamente uma nova configuracao LoRA para o ator e usa o modelo base puro como referencia congelada. Isso evita que o pipeline dependa obrigatoriamente de um artefato anterior para funcionar.
 
@@ -121,14 +130,6 @@ Configuracoes principais do treino:
 - `bnb_4bit_compute_dtype=torch.float16`
 
 ## Execucao
-
-### Requisitos
-
-```powershell
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-```
 
 ### Recriar o dataset de preferencias
 
@@ -173,6 +174,12 @@ Ao final do treino, o script:
 
 O comportamento esperado no console e observar que a resposta segura recebe score melhor que a resposta rejeitada, mostrando que a preferencia foi internalizada.
 
+## Evidencia da execucao
+
+O resumo da execucao final utilizada na entrega esta em:
+
+- `reports/final_run_lab08.md`
+
 ## Checklist para correcao
 
 - dataset com colunas estritamente `prompt`, `chosen` e `rejected`
@@ -186,7 +193,7 @@ O comportamento esperado no console e observar que a resposta segura recebe scor
 
 - O script exige CUDA disponivel para o treino quantizado com `bitsandbytes`.
 - O modelo padrao continua sendo `HuggingFaceTB/SmolLM-135M-Instruct`, escolhido para manter o laboratorio viavel em hardware academico.
-- O adaptador do Lab 07 pode ser reaproveitado, mas o pipeline tambem funciona sem ele.
+- A pasta `adapters/` nao foi versionada neste repositorio para manter a entrega enxuta; ela e criada localmente durante o treino quando necessario.
 - A geracao livre apos o treino pode permanecer simples ou repetitiva por causa do porte reduzido do modelo base. A validacao principal da entrega e a comparacao objetiva entre `chosen` e `rejected`.
 
 ## Uso de IA
